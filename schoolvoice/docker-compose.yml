@@ -1,0 +1,15 @@
+services:
+  schoolvoice:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=change-this-to-a-long-random-string
+    volumes:
+      # Persists the SQLite database outside the container, so rebuilding
+      # or redeploying the image never wipes notes or staff accounts.
+      - schoolvoice-data:/app/data
+    restart: unless-stopped
+
+volumes:
+  schoolvoice-data:

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — SchoolVoice</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">SchoolVoice</span>
+      <span class="brand-tag">Dashboard</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      {% if current_role == 'admin' %}
+      <a href="{{ url_for('admin_users_page') }}" class="btn btn-ghost">Manage staff</a>
+      {% endif %}
+      <a href="{{ url_for('admin_change_password') }}" class="btn btn-ghost">Change password</a>
+      <a href="{{ url_for('admin_logout') }}" class="btn btn-ghost">Sign out</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <span class="knob" id="themeKnob">☀︎</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="dash-head reveal">
+    <h1>The board</h1>
+    <p class="muted">{{ counts['new'] }} new · {{ counts['seen'] }} seen · {{ counts['resolved'] }} resolved · {{ counts['spam'] }} spam</p>
+
+    <div class="filter-row">
+      {% for f in ['all', 'new', 'seen', 'resolved', 'spam'] %}
+      <a href="{{ url_for('admin_dashboard', status=f) }}" class="chip{% if active_filter == f %} is-active{% endif %}">{{ f|capitalize }}</a>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="cards-wrap">
+    {% if suggestions|length == 0 %}
+    <p class="muted" style="padding: 20px clamp(20px,5vw,64px);">No notes here yet.</p>
+    {% endif %}
+    <div class="cards-grid">
+      {% for s in suggestions %}
+      <article class="note-card reveal {% if s['flagged'] %}is-flagged{% endif %}" data-id="{{ s['id'] }}">
+        <div class="note-card-top">
+          <span class="tag">{{ s['category'] }}</span>
+          {% if s['flagged'] %}<span class="tag tag-warn">flagged for review</span>{% endif %}
+        </div>
+        <p class="note-body">{{ s['message'] }}</p>
+        <div class="note-card-bottom">
+          <span class="timestamp">{{ s['created_at'][:16].replace('T', ' ') }} UTC</span>
+          <select class="status-select" data-id="{{ s['id'] }}">
+            <option value="new" {% if s['status']=='new' %}selected{% endif %}>New</option>
+            <option value="seen" {% if s['status']=='seen' %}selected{% endif %}>Seen</option>
+            <option value="resolved" {% if s['status']=='resolved' %}selected{% endif %}>Resolved</option>
+            <option value="spam" {% if s['status']=='spam' %}selected{% endif %}>Spam</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost delete-note-btn" data-id="{{ s['id'] }}" style="width:100%; justify-content:center; margin-top:12px;">Delete note</button>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>SchoolVoice — a suggestion box, reimagined.</span>
+    <span>Built by Dhruv Shrivastava</span>
+  </footer>
+
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal-card">
+      <div class="modal-icon">🗑</div>
+      <h3>Delete this note?</h3>
+      <p class="muted">This note will be permanently removed from the board. This can't be undone.</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="modalCancel">Cancel</button>
+        <button class="btn btn-danger" id="modalConfirm">Delete note</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

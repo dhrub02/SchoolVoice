@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff sign in — SchoolVoice</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">SchoolVoice</span>
+      <span class="brand-tag">Staff area</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <span class="knob" id="themeKnob">☀︎</span>
+    </button>
+  </header>
+
+  <section class="login-wrap">
+    <form class="login-card reveal" method="POST">
+      <p class="eyebrow">Restricted</p>
+      <h1>Staff sign in</h1>
+      <p class="muted" style="margin-top:8px;">Only for staff reviewing student notes.</p>
+
+      {% if error %}
+      <div class="login-error">{{ error }}</div>
+      {% endif %}
+
+      <div class="field" style="margin-top: 22px;">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center; margin-top:8px;">Sign in →</button>
+      <a href="{{ url_for('index') }}" class="back-link">← Back to the board</a>
+    </form>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</body>
+</html>

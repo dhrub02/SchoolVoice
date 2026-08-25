@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SchoolVoice — Say what needs saying</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/board.css') }}">
+</head>
+<body>
+<div class="page">
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">SchoolVoice</span>
+      <span class="brand-tag">Anonymous · Unfiltered · Read by staff</span>
+    </div>
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+      <span class="knob" id="themeKnob">☀︎</span>
+    </button>
+  </header>
+
+  <section class="hero reveal">
+    <p class="eyebrow">A note board for the things worth fixing</p>
+    <h1>Say what needs saying.<br>No name required.</h1>
+    <p class="lede">Pin a note about anything at school — academics, facilities, safety, or an idea that would make things better. Nobody sees who sent it. A staff member reads every note.</p>
+  </section>
+
+  <section class="board-wrap reveal">
+    <div class="board">
+      <span class="slot-mark"></span>
+      <div class="board-slot">
+        <span>NOTE&nbsp;INTAKE</span>
+        <span class="line"></span>
+        <span id="charStatus">0 / 2000</span>
+      </div>
+
+      <div class="stage">
+        <div class="note-fly" id="noteFly"></div>
+
+        <form class="form-grid" id="suggestionForm">
+          <div class="field">
+            <label>What's this about?</label>
+            <div class="category-row" id="categoryRow">
+              {% for c in categories %}
+              <button type="button" class="chip{% if loop.first %} is-active{% endif %}" data-value="{{ c }}">{{ c }}</button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="message">Your note</label>
+            <textarea id="message" name="message" placeholder="Tell us what's going on and, if you can, what would help..." maxlength="2000"></textarea>
+            <div class="char-count" id="charCount">0 / 20 minimum</div>
+          </div>
+
+          <label class="honesty">
+            <input type="checkbox" id="honestCheck">
+            <span>I confirm this is a genuine concern, not a joke submission — staff will read it as real.</span>
+          </label>
+
+          <ul class="error-list" id="errorList"></ul>
+
+          <div class="form-footer">
+            <p class="privacy-note">We don't collect your name, email, or device info. Nothing here can be traced back to you.</p>
+            <button type="submit" class="btn btn-primary" id="submitBtn">Pin this note →</button>
+          </div>
+        </form>
+
+        <div class="success-panel" id="successPanel">
+          <div class="success-check">✓</div>
+          <h3>Pinned.</h3>
+          <p class="muted">Your note is on the board. A staff member will review it soon.</p>
+          <button class="btn btn-ghost" id="againBtn">Send another note</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span>SchoolVoice — a suggestion box, reimagined.</span>
+    <span>Built by Dhruv Shrivastava</span>
+    <a href="{{ url_for('admin_login') }}">Staff sign in</a>
+  </footer>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

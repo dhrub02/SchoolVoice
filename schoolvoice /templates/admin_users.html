@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manage staff — SchoolVoice</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+<div class="page">
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">SchoolVoice</span>
+      <span class="brand-tag">Manage staff</span>
+    </div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost">← Dashboard</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+        <span class="knob" id="themeKnob">☀︎</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="dash-head reveal">
+    <h1>Staff accounts</h1>
+    <p class="muted">Anyone with a login here can read every note and change its status.</p>
+  </section>
+
+  <section class="cards-wrap">
+    <div class="settings-grid">
+
+      <div class="settings-card reveal">
+        <h3 style="font-size:18px; margin-bottom:14px;">Add a staff account</h3>
+
+        {% if add_error %}<div class="login-error">{{ add_error }}</div>{% endif %}
+        {% if add_success %}<div class="login-success">{{ add_success }}</div>{% endif %}
+
+        <form method="POST" style="margin-top:14px;">
+          <input type="hidden" name="form_name" value="add_user">
+          <div class="field">
+            <label for="new_username">Username</label>
+            <input type="text" id="new_username" name="new_username" required>
+          </div>
+          <div class="field">
+            <label for="new_password">Password</label>
+            <input type="password" id="new_password" name="new_password" minlength="8" required>
+            <p class="hint">At least 8 characters.</p>
+          </div>
+          <div class="field">
+            <label for="new_role">Access level</label>
+            <select id="new_role" name="new_role" class="status-select" style="width:100%; padding:11px 14px;">
+              <option value="staff" selected>Staff — view &amp; triage notes only</option>
+              <option value="admin">Admin — can also manage staff accounts</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width:100%; justify-content:center;">Create account →</button>
+        </form>
+      </div>
+
+      <div class="settings-card reveal">
+        <h3 style="font-size:18px; margin-bottom:14px;">Current staff</h3>
+        <ul class="user-list">
+          {% for u in users %}
+          <li class="user-row" data-id="{{ u['id'] }}">
+            <div>
+              <span class="user-name">{{ u['username'] }}{% if u['id'] == current_user_id %} <span class="you-tag">you</span>{% endif %}{% if u['role'] == 'admin' %} <span class="admin-tag">admin</span>{% endif %}</span>
+              <span class="timestamp" style="display:block; margin-top:2px;">Added {{ u['created_at'][:10] }}</span>
+            </div>
+            {% if u['id'] != current_user_id %}
+            <button class="btn btn-ghost remove-user-btn" data-id="{{ u['id'] }}" data-name="{{ u['username'] }}">Remove</button>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+    </div>
+  </section>
+</div>
+<script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+</body>
+</html>
