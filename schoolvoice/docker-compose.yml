@@ -2,7 +2,7 @@ services:
   schoolvoice:
     build: .
     ports:
-      - "5000:5000"
+      - "5463:5463"
     environment:
       - SECRET_KEY=change-this-to-a-long-random-string
     volumes:

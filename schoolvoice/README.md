@@ -11,7 +11,7 @@ You need Python 3.9+ installed.
 ```bash
 cd schoolvoice
 pip install -r requirements.txt
-python app.py
+python run.py
 ```
 
 Then open **http://localhost:5000** in your browser.
@@ -26,7 +26,7 @@ terminal needed. Once logged in:
 - **Manage staff**: top of the dashboard → add new staff logins (e.g. one
   per teacher/counselor) or remove old ones, all from the browser
 
-Staff accounts are stored in the site's own database (`suggestions.db`), not
+Staff accounts are stored in the site's own database (`data/suggestions.db`), not
 in environment variables — so any staff member with a login can rotate their
 own password whenever they need to, without touching code or a server.
 
@@ -48,7 +48,7 @@ deploying (this only protects login sessions, not passwords):
 
 ```bash
 export SECRET_KEY="some-long-random-string"
-python app.py
+python run.py
 ```
 
 ## How anonymity is protected
@@ -117,12 +117,15 @@ through whichever one you pick.
 
 ```
 schoolvoice/
-├── app.py                  # Flask backend (routes, database, auth)
+├── run.py                  # Local development entry point
+├── app/
+│   ├── __init__.py         # Flask application package exports
+│   └── routes.py           # Routes, database access, and auth logic
 ├── requirements.txt
 ├── Dockerfile               # container build instructions
 ├── docker-compose.yml       # local Docker run config with persistent volume
-├── .dockerignore
-├── suggestions.db          # created automatically on first run (SQLite)
+├── data/
+│   └── suggestions.db      # created automatically on first run (SQLite)
 ├── templates/
 │   ├── index.html          # public form
 │   ├── admin_login.html

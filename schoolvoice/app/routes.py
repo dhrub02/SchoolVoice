@@ -1,19 +1,26 @@
 import os
 import sqlite3
+import hashlib
+import hmac
 from datetime import datetime, timedelta
 from functools import wraps
 
 from flask import Flask, g, render_template, request, redirect, url_for, session, jsonify
+from cryptography.hazmat.primitives.kdf.scrypt import Scrypt
 from werkzeug.security import generate_password_hash, check_password_hash
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # In Docker, DATA_DIR points at a mounted volume so the database survives
-# container rebuilds. Locally, it just defaults to the project folder.
-DATA_DIR = os.environ.get("DATA_DIR", BASE_DIR)
+# container rebuilds. Locally, it defaults to the project's data directory.
+DATA_DIR = os.environ.get("DATA_DIR", os.path.join(PROJECT_DIR, "data"))
 os.makedirs(DATA_DIR, exist_ok=True)
 DB_PATH = os.path.join(DATA_DIR, "suggestions.db")
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    template_folder=os.path.join(PROJECT_DIR, "templates"),
+    static_folder=os.path.join(PROJECT_DIR, "static"),
+)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret-change-me")
 
 # --- Config knobs -----------------------------------------------------
@@ -29,7 +36,25 @@ CRUDE_WORD_FILTER = {"idiot", "stupid", "dumb", "hate you", "kill"}  # light heu
 # managed from the "Manage staff" page inside the admin panel — no terminal
 # needed. A default account is seeded the first time the app runs:
 DEFAULT_ADMIN_USERNAME = "admin"
-DEFAULT_ADMIN_PASSWORD = "changeme123"
+DEFAULT_ADMIN_PASSWORD = "dhruv@777"
+PASSWORD_HASH_METHOD = "pbkdf2:sha256:600000"
+
+
+def verify_password(password_hash: str, password: str) -> bool:
+    """Verify current hashes and legacy scrypt hashes on Python without hashlib.scrypt."""
+    if not password_hash.startswith("scrypt:") or hasattr(hashlib, "scrypt"):
+        return check_password_hash(password_hash, password)
+
+    method, salt, expected = password_hash.split("$")
+    _, n, r, p = method.split(":")
+    derived = Scrypt(
+        salt=salt.encode(),
+        length=64,
+        n=int(n),
+        r=int(r),
+        p=int(p),
+    ).derive(password.encode()).hex()
+    return hmac.compare_digest(derived, expected)
 
 
 def get_db():
@@ -94,7 +119,7 @@ def init_db():
     if existing["c"] == 0:
         db.execute(
             "INSERT INTO admin_users (username, password_hash, role, created_at) VALUES (?, ?, 'admin', ?)",
-            (DEFAULT_ADMIN_USERNAME, generate_password_hash(DEFAULT_ADMIN_PASSWORD), datetime.utcnow().isoformat()),
+            (DEFAULT_ADMIN_USERNAME, generate_password_hash(DEFAULT_ADMIN_PASSWORD, method=PASSWORD_HASH_METHOD), datetime.utcnow().isoformat()),
         )
     else:
         # Migration for databases created before roles existed: if nobody
@@ -213,7 +238,13 @@ def admin_login():
         password = request.form.get("password", "")
         db = get_db()
         user = db.execute("SELECT * FROM admin_users WHERE username = ?", (username,)).fetchone()
-        if user and check_password_hash(user["password_hash"], password):
+        if user and verify_password(user["password_hash"], password):
+            if user["password_hash"].startswith("scrypt:"):
+                db.execute(
+                    "UPDATE admin_users SET password_hash = ? WHERE id = ?",
+                    (generate_password_hash(password, method=PASSWORD_HASH_METHOD), user["id"]),
+                )
+                db.commit()
             session["is_admin"] = True
             session["admin_id"] = user["id"]
             session["admin_username"] = user["username"]
@@ -311,7 +342,7 @@ def admin_users_page():
             else:
                 db.execute(
                     "INSERT INTO admin_users (username, password_hash, role, created_at) VALUES (?, ?, ?, ?)",
-                    (new_username, generate_password_hash(new_password), new_role, datetime.utcnow().isoformat()),
+                    (new_username, generate_password_hash(new_password, method=PASSWORD_HASH_METHOD), new_role, datetime.utcnow().isoformat()),
                 )
                 db.commit()
                 add_success = f'Staff account "{new_username}" created with {new_role} access.'
@@ -378,7 +409,7 @@ def admin_change_password():
         else:
             db.execute(
                 "UPDATE admin_users SET password_hash = ? WHERE id = ?",
-                (generate_password_hash(new_password), user["id"]),
+                (generate_password_hash(new_password, method=PASSWORD_HASH_METHOD), user["id"]),
             )
             db.commit()
             success = "Password updated."
@@ -388,4 +419,4 @@ def admin_change_password():
 
 if __name__ == "__main__":
     init_db()
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True, host="0.0.0.0", port=5463)
