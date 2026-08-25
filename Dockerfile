@@ -26,4 +26,4 @@ EXPOSE 5000
 # 2 workers is plenty for a school-sized suggestion box.
 # init_db() runs once on container start — safe to call every time,
 # it only creates tables/seeds the default account if they don't exist yet.
-CMD ["sh", "-c", "python -c 'from app import init_db; init_db()' && gunicorn --bind 0.0.0.0:5000 --workers 2 app:app"]
+CMD ["sh", "-c", "python -c 'from app import init_db; init_db()' && gunicorn --bind 0.0.0.0:5463 --workers 2 app:app"]
